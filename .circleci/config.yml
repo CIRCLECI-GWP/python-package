@@ -9,33 +9,33 @@ jobs:
           command: |  # create whl and use pipenv to install dependencies
             python setup.py sdist bdist_wheel
             sudo pip install pipenv
-            pipenv install dist/convrsn-0.0.1-py3-none-any.whl
+            pipenv install dist/convrsn-0.0.2-py3-none-any.whl
             pipenv install pytest
       - run:
           command: |  # Run test suite
-            pytest
+            pipenv run pytest
   test_pypi_publish:
     docker:
       - image: circleci/python:3.6.4
     steps:
       - checkout  # checkout source code to working directory
       - run:
-          command: |  # create whl, install twine and publish
+          command: |  # create whl, install twine and publish to Test PyPI
             python setup.py sdist bdist_wheel
             sudo pip install pipenv
             pipenv install twine
-            twine upload --repository testpypi dist/*
+            pipenv run twine upload --repository testpypi dist/*
   pypi_publish:
     docker:
       - image: circleci/python:3.6.4
     steps:
       - checkout  # checkout source code to working directory
       - run:
-          command: |  # create whl, install twine and publish
+          command: |  # create whl, install twine and publish to PyPI
             python setup.py sdist bdist_wheel
             sudo pip install pipenv
             pipenv install twine
-            twine upload --repository dist/*
+            pipenv run twine upload dist/*
 workflows:
   build_test_publish:
     jobs:
@@ -47,11 +47,10 @@ workflows:
             branches:
               only:
                 - develop
-                - master
       - pypi_publish:
           requires:
-            - test_pypi_publish
+            - build_test
           filters:
             branches:
               only:
-                - master
+                - main
